@@ -26,7 +26,7 @@ val dependenciesToEmbed = Seq(
   "org.typelevel" %% "cats-effect" % "2.5.5",
 )
 
-assembly / assemblyMergeStrategy := {
+ThisBuild / assemblyMergeStrategy := {
   case PathList(ps @ _*) if ps.last endsWith "LICENSE" => MergeStrategy.rename
   case PathList(ps @ _*) if ps.last endsWith "module-info.class" => MergeStrategy.last
   case PathList("org", "apache", "commons", "logging", xs @ _*) =>
@@ -36,10 +36,14 @@ assembly / assemblyMergeStrategy := {
     oldStrategy(otherFile)
 }
 
-lazy val domain = project in file("./src/domain")
+lazy val common = (project in file("./src/common"))
+  .settings(
+    libraryDependencies := dependenciesToEmbed,
+    Compile / unmanagedSourceDirectories += baseDirectory.value / "scala"
+  )
 
 lazy val version112 = (project in file("./src/1-12"))
-  .dependsOn(domain)
+  .dependsOn(common)
   .settings(
     libraryDependencies := providedDependencies112,
     javaHome := sys.env.get("JDK_8").map(file),
@@ -50,7 +54,7 @@ lazy val version112 = (project in file("./src/1-12"))
   )
 
 lazy val version118 = (project in file("./src/1-18"))
-  .dependsOn(domain)
+  .dependsOn(common)
   .settings(
     libraryDependencies := providedDependencies118,
     javaHome := sys.env.get("JDK_17").map(file),
@@ -61,7 +65,7 @@ lazy val version118 = (project in file("./src/1-18"))
   )
 
 lazy val root = (project in file(""))
-  .aggregate(domain, version112, version118)
+  .aggregate(common, version112, version118)
   .settings(
       libraryDependencies := dependenciesToEmbed,
       scalacOptions ++= Seq(
