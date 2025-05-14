@@ -3,6 +3,7 @@ package click.seichi
 import cats.effect.Sync
 import click.seichi.application.{ComputeLocationFromPaths, DeserializedItemStacksIntoChest, PutChest, WorldLifecycleManager}
 import click.seichi.domain.persistence.ItemStackPersistence
+import click.seichi.domain.WorldName
 import click.seichi.infra.{JdbcFourDimensionalPocketItemStackPersistence, JdbcGachaDataItemStackPersistence, JdbcSharedInventoryItemStackPersistence}
 import click.seichi.typeclasses.SerializeAndDeserialize
 
@@ -29,7 +30,7 @@ class ItemStackFixerAPI[F[_]: Sync, ItemStack] {
       gachaDataItemStackPersistence,
     ).flatTraverse(_.readSerializedItemStacks)
 
-    val worldName = "formigration"
+    val worldName = WorldName("formigration")
 
     for {
       deserializedItemStacksWithPath <- deserializedItemStacksWithPathF

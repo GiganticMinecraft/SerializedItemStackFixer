@@ -1,10 +1,8 @@
 package click.seichi.infra
 
 import cats.effect.Sync
-import click.seichi.domain.PathAndLocation
 import click.seichi.domain.persistence.PathAndLocationPersistence
-import click.seichi.domain.Path
-import click.seichi.domain.SavedLocation
+import click.seichi.domain.{Path, PathAndLocation, SavedLocation, WorldName}
 import scalikejdbc._
 
 class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersistence[F] {
@@ -54,7 +52,7 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
           val path = Path.fromString(rs.string("path"))
 
           val savedLocation = SavedLocation(
-            rs.string("world_name"),
+            WorldName(rs.string("world_name")),
             rs.int("x"),
             rs.int("y"),
             rs.int("z"),

@@ -1,12 +1,12 @@
 package click.seichi.application
 
-import click.seichi.domain.{Path, PathAndLocation, SavedLocation}
+import click.seichi.domain.{Path, PathAndLocation, SavedLocation, WorldName}
 import scala.math.{ceil, cbrt}
 
 object ComputeLocationFromPaths {
   private def minimumSideSize(size: Int): Int = ceil(cbrt(size)).toInt
 
-  def compute(paths: Vector[Path], worldName: String): Vector[PathAndLocation] = {
+  def compute(paths: Vector[Path], worldName: WorldName): Vector[PathAndLocation] = {
     val sideSize = minimumSideSize(paths.size)
 
     // NOTE: これを超えるのは対象となる Path の総数が 16,581,375 を超えたとき。
