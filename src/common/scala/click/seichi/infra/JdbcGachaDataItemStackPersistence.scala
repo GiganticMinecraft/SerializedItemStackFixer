@@ -11,11 +11,11 @@ import scalikejdbc._
 import click.seichi.domain.DeserializedItemStacks
 
 class JdbcGachaDataItemStackPersistence[F[_]: Sync, ItemStack](
-  implicit serializeAndDeserialize: SerializeAndDeserialize[Nothing, ItemStack]
+  implicit serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]]
 ) extends ItemStackPersistence[F, ItemStack] {
   override def readSerializedItemStacks: F[Vector[DeserializedItemStacksWithPath[ItemStack]]] = Sync[F].delay {
     DB.readOnly { implicit session =>
-      sql"SELECT id, itemstack FROM gachadata WHERE itemstack NOT NULL"
+      sql"SELECT id, itemstack FROM gachadata WHERE itemstack IS NOT NULL"
         .map { rs =>
           val id = rs.string("id")
           val path = Path(
@@ -28,7 +28,7 @@ class JdbcGachaDataItemStackPersistence[F[_]: Sync, ItemStack](
           serializeAndDeserialize.deserialize(
             rs.string("itemstack")
           )
-          .map(itemStack => DeserializedItemStacksWithPath(DeserializedItemStacks(Vector(itemStack)), path))
+          .map(itemStack => DeserializedItemStacksWithPath(DeserializedItemStacks(itemStack), path))
           .merge
         }
         .toList
@@ -44,7 +44,7 @@ class JdbcGachaDataItemStackPersistence[F[_]: Sync, ItemStack](
       val batchParams = deserializedItemStacksWithPaths.map { deserializedItemStacksWithPath =>
         Seq(
           serializeAndDeserialize.serialize(
-            deserializedItemStacksWithPath.itemStacks.itemStacks.head
+            deserializedItemStacksWithPath.itemStacks.itemStacks
           ),
           deserializedItemStacksWithPath.path.segments.toVector.last.value,
         )

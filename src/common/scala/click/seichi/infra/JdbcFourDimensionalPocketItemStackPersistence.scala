@@ -15,7 +15,7 @@ class JdbcFourDimensionalPocketItemStackPersistence[F[_]: Sync, ItemStack](
 ) extends ItemStackPersistence[F, ItemStack] {
   override def readSerializedItemStacks: F[Vector[DeserializedItemStacksWithPath[ItemStack]]] = Sync[F].delay {
     DB.readOnly { implicit session =>
-      sql"SELECT uuid, inventory FROM playerdata"
+      sql"SELECT uuid, inventory FROM playerdata WHERE inventory IS NOT NULL"
         .map { rs =>
           val id = rs.string("uuid")
           val inventory = rs.string("inventory")

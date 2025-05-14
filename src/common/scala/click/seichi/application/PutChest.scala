@@ -1,12 +1,14 @@
 package click.seichi.application
 
-trait PutChest[F[_], Location] {
+import click.seichi.domain.SavedLocation
+
+trait PutChest[F[_]] {
   /**
    * @return `location` にチェストブロックを設置する作用
    */
-  def put(location: Location): F[Unit]
+  def put(location: SavedLocation): F[Unit]
 }
 
 object PutChest {
-  def apply[F[_], Location](implicit ev: PutChest[F, Location]): PutChest[F, Location] = ev
+  def apply[F[_]](implicit ev: PutChest[F]): PutChest[F] = ev
 }

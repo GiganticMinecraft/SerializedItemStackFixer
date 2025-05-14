@@ -15,7 +15,7 @@ class JdbcSharedInventoryItemStackPersistence[F[_]: Sync, ItemStack](
 ) extends ItemStackPersistence[F, ItemStack] {
   override def readSerializedItemStacks: F[Vector[DeserializedItemStacksWithPath[ItemStack]]] = Sync[F].delay {
     DB.readOnly { implicit session =>
-      sql"SELECT uuid, shareinv FROM playerdata WHERE shareinv NOT NULL"
+      sql"SELECT uuid, shareinv FROM playerdata WHERE shareinv IS NOT NULL"
         .map { rs =>
           val id = rs.string("uuid")
           val shareinv = rs.string("shareinv")
