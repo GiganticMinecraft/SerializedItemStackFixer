@@ -2,7 +2,7 @@ package click.seichi.domain.persistence
 
 import click.seichi.domain.PathAndLocation
 
-trait PathWithLocationPersistence[F[_]] {
+trait PathAndLocationPersistence[F[_]] {
 
   def createSerializedItemStackFixerDatabase(): F[Unit]
 
