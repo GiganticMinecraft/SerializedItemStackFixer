@@ -11,7 +11,6 @@ import click.seichi.domain.Path
 import scalikejdbc._
 
 class JdbcFourDimensionalPocketItemStackPersistence[F[_]: Sync, ItemStack](
-  // NOTE: SeichiAssist のコードでは、四次元ポケットを Serialize/Deserialize する方法は違うので注意が必要
   implicit serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]]
 ) extends ItemStackPersistence[F, ItemStack] {
   override def readSerializedItemStacks: F[Vector[DeserializedItemStacksWithPath[ItemStack]]] = Sync[F].delay {
