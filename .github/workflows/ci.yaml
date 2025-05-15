@@ -1,4 +1,4 @@
-name: Build
+name: Build and release
 on:
   push:
     branches:
@@ -7,6 +7,20 @@ on:
     branches:
       - main
 jobs:
+  output-sha:
+    name: Output SHA value of the latest commit
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.output-sha.outputs.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Outputs the value
+        id: output-sha
+        run: |
+          VALUE=$(git log --format='%h' -n 1)
+          echo "sha=$VALUE" >> $GITHUB_OUTPUT
+        shell: bash
   build:
     name: Build
     runs-on: ubuntu-24.04
@@ -40,3 +54,38 @@ jobs:
           path: |
             SerializedItemStackFixer-1-12.jar
             SerializedItemStackFixer-1-18.jar
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - output-sha
+      - build
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create and push a tag
+        id: tag-name
+        run: |
+          TAG_NAME=sha-${{ needs.output-sha.outputs.sha }}
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+          echo "value=$TAG_NAME" >> $GITHUB_OUTPUT
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: outputs
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            SerializedItemStackFixer-1-12.jar
+            SerializedItemStackFixer-1-18.jar
+          tag_name: ${{ steps.tag-name.outputs.value }}
+          draft: false
+          prerelease: false
+          make_latest: true
