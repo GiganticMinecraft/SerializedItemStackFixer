@@ -29,4 +29,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: outputs
-          path: target/build/*.jar
+          path: |
+            1-12/target/build/*.jar
+            1-18/target/build/*.jar
