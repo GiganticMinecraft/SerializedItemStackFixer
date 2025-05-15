@@ -21,6 +21,10 @@ jobs:
             8
             17
           cache: sbt
+      - name: Set JDK path
+        run: |
+          echo "JDK_8=$JAVA_HOME_8_X64" >> $GITHUB_ENV
+          echo "JDK_17=$JAVA_HOME_17_X64" >> $GITHUB_ENV
       - name: Setup sbt
         uses: sbt/setup-sbt@v1
       - name: Build jar files
