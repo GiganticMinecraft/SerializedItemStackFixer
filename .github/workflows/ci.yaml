@@ -16,7 +16,7 @@ jobs:
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: adopt
           java-version: |
             8
             17
