@@ -25,6 +25,7 @@ jobs:
         uses: sbt/setup-sbt@v1
       - name: Build jar files
         run: sbt assembly
+      - run: ls -la
       - name: Upload jar files
         uses: actions/upload-artifact@v4
         with:
