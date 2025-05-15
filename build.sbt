@@ -39,6 +39,7 @@ ThisBuild / assemblyMergeStrategy := {
 lazy val common = (project in file("./src/common"))
   .settings(
     libraryDependencies := dependenciesToEmbed,
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full),
     Compile / unmanagedSourceDirectories += baseDirectory.value / "scala"
   )
 
@@ -67,8 +68,8 @@ lazy val version118 = (project in file("./src/1-18"))
 lazy val root = (project in file(""))
   .aggregate(common, version112, version118)
   .settings(
-      libraryDependencies := dependenciesToEmbed,
-      scalacOptions ++= Seq(
-        "-encoding", "UTF-8"
-      ),
+    libraryDependencies := dependenciesToEmbed,
+    scalacOptions ++= Seq(
+      "-encoding", "UTF-8"
+    ),
   )
