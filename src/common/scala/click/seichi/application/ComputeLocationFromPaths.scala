@@ -1,7 +1,8 @@
 package click.seichi.application
 
-import click.seichi.domain.{Path, PathAndLocation, SavedLocation, WorldName}
-import scala.math.{ceil, cbrt}
+import click.seichi.domain.{LargeChestPuttedLocation, Path, PathAndLocation, WorldName, Coordinate}
+
+import scala.math.{cbrt, ceil}
 
 object ComputeLocationFromPaths {
   private def minimumSideSize(size: Int): Int = ceil(cbrt(size)).toInt
@@ -13,10 +14,10 @@ object ComputeLocationFromPaths {
     assert(sideSize > 255, "Total path size is too large!")
 
     val savedLocations = for {
-      x <- 0 to sideSize
+      x <- 0 to sideSize * 3 by 3
       y <- 1 to (sideSize + 1)
-      z <- 0 to sideSize
-    } yield SavedLocation(worldName, x, y, z)
+      z <- 0 to sideSize * 2 by 2
+    } yield LargeChestPuttedLocation(worldName, Coordinate(x, y, z))
 
     // NOTE: このアサーションが引っかかるならロジックが間違っている
     assert(savedLocations.size <= paths.size)

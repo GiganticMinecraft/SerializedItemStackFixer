@@ -2,7 +2,7 @@ package click.seichi.infra
 
 import cats.effect.Sync
 import click.seichi.domain.persistence.PathAndLocationPersistence
-import click.seichi.domain.{Path, PathAndLocation, SavedLocation, WorldName}
+import click.seichi.domain.{Coordinate, LargeChestPuttedLocation, Path, PathAndLocation, WorldName}
 import scalikejdbc._
 
 class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersistence[F] {
@@ -17,9 +17,12 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
       sql"""CREATE TABLE IF NOT EXISTS migration_targets(
            | path VARCHAR(255) NOT NULL PRIMARY KEY,
            | world_name VARCHAR(255) NOT NULL,
-           | x INT NOT NULL,
-           | y INT NOT NULL,
-           | z INT NOT NULL
+           | left_side_x INT NOT NULL,
+           | left_side_y INT NOT NULL,
+           | left_side_z INT NOT NULL,
+           | right_side_x INT NOT NULL,
+           | right_side_y INT NOT NULL,
+           | right_side_z INT NOT NULL
            | )
          """
         .stripMargin
@@ -33,9 +36,12 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
         Seq(
           pathAndLocation.path.toString,
           pathAndLocation.location.worldName,
-          pathAndLocation.location.x,
-          pathAndLocation.location.y,
-          pathAndLocation.location.z,
+          pathAndLocation.location.leftSideCoordinate.x,
+          pathAndLocation.location.leftSideCoordinate.y,
+          pathAndLocation.location.leftSideCoordinate.z,
+          pathAndLocation.location.rightSideCoordinate.x,
+          pathAndLocation.location.rightSideCoordinate.y,
+          pathAndLocation.location.rightSideCoordinate.z,
         )
       }
 
@@ -47,15 +53,22 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
 
   override def fetchPathAndLocations(): F[Vector[PathAndLocation]] = Sync[F].delay {
     DB.readOnly { implicit session =>
-      sql"SELECT path, world_name, x, y, z FROM serialized_itemstack_fixer.migration_targets"
+      sql"SELECT path, world_name, left_side_x, left_side_y, left_side_z, right_side_x, right_side_y, right_side_z, FROM serialized_itemstack_fixer.migration_targets"
         .map { rs =>
           val path = Path.fromString(rs.string("path"))
 
-          val savedLocation = SavedLocation(
+          val savedLocation = LargeChestPuttedLocation(
             WorldName(rs.string("world_name")),
-            rs.int("x"),
-            rs.int("y"),
-            rs.int("z"),
+            Coordinate(
+              rs.int("left_side_x"),
+              rs.int("left_side_y"),
+              rs.int("left_side_z")
+            ),
+            Coordinate(
+              rs.int("right_side_x"),
+              rs.int("right_side_y"),
+              rs.int("right_side_z")
+            ),
           )
 
           PathAndLocation(path, savedLocation)
