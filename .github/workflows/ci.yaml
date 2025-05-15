@@ -36,5 +36,5 @@ jobs:
         with:
           name: outputs
           path: |
-            1-12/target/build/**.jar
-            1-18/target/build/**.jar
+            src/1-12/target/build/**.jar
+            src/1-18/target/build/**.jar
