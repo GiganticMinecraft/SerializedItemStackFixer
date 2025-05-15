@@ -29,11 +29,14 @@ jobs:
         uses: sbt/setup-sbt@v1
       - name: Build jar files
         run: sbt assembly
+      - name: Move jar files
+        run: |
+          cp -p src/1-12/target/build/SerializedItemStackFixer-1-12.jar src/1-18/target/build/SerializedItemStackFixer-1-18.jar .
       - name: Upload jar files
         uses: actions/upload-artifact@v4
         with:
           name: outputs
           if-no-files-found: error
           path: |
-            src/1-12/target/build/SerializedItemStackFixer-1-12.jar
-            src/1-18/target/build/SerializedItemStackFixer-1-18.jar
+            SerializedItemStackFixer-1-12.jar
+            SerializedItemStackFixer-1-18.jar
