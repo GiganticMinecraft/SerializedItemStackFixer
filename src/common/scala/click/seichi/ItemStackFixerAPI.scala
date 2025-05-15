@@ -29,7 +29,7 @@ class ItemStackFixerAPI[F[_]: Sync, ItemStack] {
     _ <- pathAndLocations.zip(deserializedItemStacksWithPath)
       .traverse { case (pathAndLocation, deserializedItemStacksWithPath) =>
         putChest.put(pathAndLocation.location) >> deserializedItemStacksIntoChest
-          .intoChest(deserializedItemStacksWithPath.itemStacks)
+          .intoChest(pathAndLocation.location, deserializedItemStacksWithPath.itemStacks)
       }
   } yield ()
 
