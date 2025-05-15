@@ -48,7 +48,6 @@ lazy val version112 = (project in file("./src/1-12"))
   .settings(
     libraryDependencies := providedDependencies112,
     javaHome := sys.env.get("JDK_8").map(file),
-    javacOptions ++= Seq("-release", "8"),
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / unmanagedSourceDirectories += baseDirectory.value / "scala",
     assembly / assemblyOutputPath := baseDirectory.value / "target" / "build" / "SerializedItemStackFixer-1-12.jar",
@@ -59,7 +58,6 @@ lazy val version118 = (project in file("./src/1-18"))
   .settings(
     libraryDependencies := providedDependencies118,
     javaHome := sys.env.get("JDK_17").map(file),
-    javacOptions ++= Seq("-release", "17"),
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     Compile / unmanagedSourceDirectories += baseDirectory.value / "scala",
     assembly / assemblyOutputPath := baseDirectory.value / "target" / "build" / "SerializedItemStackFixer-1-18.jar",
