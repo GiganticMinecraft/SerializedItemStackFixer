@@ -29,7 +29,8 @@ jobs:
         uses: sbt/setup-sbt@v1
       - name: Build jar files
         run: sbt assembly
-      - run: ls -la
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Upload jar files
         uses: actions/upload-artifact@v4
         with:
