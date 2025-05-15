@@ -1,3 +1,10 @@
 name: SerializedItemStackFixer
 main: click.seichi.SerializedItemStackFixer
 version: 1.0.0
+
+commands:
+  fixer:
+
+permissions:
+  fixer.*:
+    default: op
