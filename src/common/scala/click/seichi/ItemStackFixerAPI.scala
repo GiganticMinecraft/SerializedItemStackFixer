@@ -5,8 +5,9 @@ import click.seichi.application.{ComputeLocationFromPaths, DeserializedItemStack
 import click.seichi.domain.WorldName
 import click.seichi.infra.{JdbcFourDimensionalPocketItemStackPersistence, JdbcGachaDataItemStackPersistence, JdbcSharedInventoryItemStackPersistence}
 import click.seichi.typeclasses.SerializeAndDeserialize
+import click.seichi.typeclasses.concurrent.NonServerThreadContextShift
 
-class ItemStackFixerAPI[F[_]: Sync, ItemStack] {
+class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift, ItemStack] {
 
   import cats.implicits._
 
@@ -16,6 +17,7 @@ class ItemStackFixerAPI[F[_]: Sync, ItemStack] {
     serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]],
     worldLifecycleManager: WorldLifecycleManager[F]
   ): F[Unit] = for {
+    _ <- NonServerThreadContextShift[F].shift
     deserializedItemStacksWithPath <- Vector(
       new JdbcFourDimensionalPocketItemStackPersistence[F, ItemStack],
       new JdbcSharedInventoryItemStackPersistence[F, ItemStack],
