@@ -35,5 +35,5 @@ jobs:
           name: outputs
           if-no-files-found: error
           path: |
-            src/1-12/target/build/**.jar
-            src/1-18/target/build/**.jar
+            src/1-12/target/build/SerializedItemStackFixer-1-12.jar
+            src/1-18/target/build/SerializedItemStackFixer-1-18.jar
