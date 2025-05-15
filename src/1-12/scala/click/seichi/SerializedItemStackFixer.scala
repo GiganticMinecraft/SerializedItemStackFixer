@@ -44,11 +44,9 @@ class SerializedItemStackFixer extends JavaPlugin with Listener {
   override def onCommand(sender: CommandSender, command: Command, label: String, args: Array[String]): Boolean = {
     super.onCommand(sender, command, label, args)
 
-    val helpMessage ="""
-        |/fixer deserialize - serialize された ItemStack をワールド内のチェストに移動します
-        |""".stripMargin
+    val helpMessage ="/fixer deserialize - serialize された ItemStack をワールド内のチェストに移動します"
 
-    if (!label.equalsIgnoreCase("fixer") || !args.isEmpty || !args(0).equalsIgnoreCase("deserialize")) {
+    if (!label.equalsIgnoreCase("fixer") || args.isEmpty || !args(0).equalsIgnoreCase("deserialize")) {
       sender.sendMessage(helpMessage)
       return true
     }
