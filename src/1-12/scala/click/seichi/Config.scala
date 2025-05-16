@@ -4,8 +4,6 @@ import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 
 final class Config private (val config: FileConfiguration) {
-  def getHost: String = config.getString("host")
-  def getPort: Int = config.getInt("port")
   def getUser: String = config.getString("user")
   def getPassword: String = config.getString("password")
 
