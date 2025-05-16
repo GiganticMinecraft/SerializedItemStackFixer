@@ -53,7 +53,7 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
 
   override def fetchPathAndLocations(): F[Vector[PathAndLocation]] = Sync[F].delay {
     DB.readOnly { implicit session =>
-      sql"SELECT path, world_name, left_side_x, left_side_y, left_side_z, right_side_x, right_side_y, right_side_z, FROM serialized_itemstack_fixer.migration_targets"
+      sql"SELECT path, world_name, left_side_x, left_side_y, left_side_z, right_side_x, right_side_y, right_side_z FROM serialized_itemstack_fixer.migration_targets"
         .map { rs =>
           val path = Path.fromString(rs.string("path"))
 
