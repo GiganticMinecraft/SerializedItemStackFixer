@@ -35,7 +35,7 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
       val params = pathAndLocations.map { pathAndLocation =>
         Seq(
           pathAndLocation.path.toString,
-          pathAndLocation.location.worldName,
+          pathAndLocation.location.worldName.name,
           pathAndLocation.location.leftSideCoordinate.x,
           pathAndLocation.location.leftSideCoordinate.y,
           pathAndLocation.location.leftSideCoordinate.z,
@@ -45,7 +45,7 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
         )
       }
 
-      sql"INSERT INTO serialized_itemstack_fixer.migration_targets VALUES (?, ?, ?)"
+      sql"INSERT INTO serialized_itemstack_fixer.migration_targets VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         .batch(params: _*)
         .apply[List]()
     }
