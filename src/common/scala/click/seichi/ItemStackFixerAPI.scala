@@ -1,5 +1,6 @@
 package click.seichi
 
+import cats.Parallel
 import cats.effect.Sync
 import click.seichi.application.{ComputeLocationFromPaths, DeserializedItemStacksIntoChest, PutChest, WorldLifecycleManager}
 import click.seichi.domain.WorldName
@@ -7,7 +8,7 @@ import click.seichi.infra.{JdbcFourDimensionalPocketItemStackPersistence, JdbcGa
 import click.seichi.typeclasses.SerializeAndDeserialize
 import click.seichi.typeclasses.concurrent.NonServerThreadContextShift
 
-class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift, ItemStack] {
+class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemStack] {
 
   import cats.implicits._
 
@@ -17,7 +18,6 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift, ItemStack] {
     serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]],
     worldLifecycleManager: WorldLifecycleManager[F]
   ): F[Unit] = for {
-    _ <- NonServerThreadContextShift[F].shift
     deserializedItemStacksWithPath <- Vector(
       new JdbcFourDimensionalPocketItemStackPersistence[F, ItemStack],
       new JdbcSharedInventoryItemStackPersistence[F, ItemStack],
@@ -29,7 +29,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift, ItemStack] {
     )
     _ <- worldLifecycleManager.createWorld(worldName)
     _ <- pathAndLocations.zip(deserializedItemStacksWithPath)
-      .traverse { case (pathAndLocation, deserializedItemStacksWithPath) =>
+      .parTraverse { case (pathAndLocation, deserializedItemStacksWithPath) =>
         putChest.put(pathAndLocation.location) >> deserializedItemStacksIntoChest
           .intoChest(pathAndLocation.location, deserializedItemStacksWithPath.itemStacks)
       }
