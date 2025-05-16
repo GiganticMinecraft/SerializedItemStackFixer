@@ -60,7 +60,13 @@ class SerializedItemStackFixer extends JavaPlugin with Listener {
     implicit val serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]] =
       new BukkitItemStackSerializeAndDeserialize[IO]
 
-    new ItemStackFixerAPI[IO, ItemStack].itemStackIntoWorld.unsafeRunSync()
+    new ItemStackFixerAPI[IO, ItemStack].itemStackIntoWorld.runAsync {
+      case Left(error) =>
+        IO {
+          error.printStackTrace()
+        }
+      case Right(_) => IO.unit
+    }.unsafeRunSync()
 
     true
   }
