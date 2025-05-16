@@ -12,7 +12,7 @@ case class Path(segments: NonEmptyVector[Segment]) {
 object Path {
   def fromString(value: String): Path = {
     val segments = value
-      .split(".")
+      .split('.')
       .map(Segment)
       .toVector
     assert(segments.nonEmpty)
