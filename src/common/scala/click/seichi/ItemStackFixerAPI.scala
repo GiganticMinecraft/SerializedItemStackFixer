@@ -2,9 +2,9 @@ package click.seichi
 
 import cats.Parallel
 import cats.effect.Sync
-import click.seichi.application.{ComputeLocationFromPaths, DeserializedItemStacksIntoChest, GetChestContents, PutChest, WorldLifecycleManager}
-import click.seichi.domain.{DeserializedItemStacksWithPath, Segment, WorldName}
+import click.seichi.application._
 import click.seichi.domain.persistence.PathAndLocationPersistence
+import click.seichi.domain.{DeserializedItemStacksWithPath, Segment, WorldName}
 import click.seichi.infra.{JdbcFourDimensionalPocketItemStackPersistence, JdbcGachaDataItemStackPersistence, JdbcPathAndLocationPersistence, JdbcSharedInventoryItemStackPersistence}
 import click.seichi.typeclasses.SerializeAndDeserialize
 import click.seichi.typeclasses.concurrent.NonServerThreadContextShift
@@ -41,6 +41,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
             .intoChest(pathAndLocation.location, deserializedItemStacksWithPath.itemStacks)
         }
       _ <- pathAndLocationPersistence.insertPathAndLocations(pathAndLocations)
+      _ <- Sync[F].delay(println("Done!"))
     } yield ()
   }
 
@@ -55,22 +56,36 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
       _ <- NonServerThreadContextShift[F].shift
       pathAndLocations <- pathAndLocationPersistence.fetchPathAndLocations()
       persistenceWithPathAndLocations <- Sync[F].pure {
-        pathAndLocations.flatMap { pathAndLocation =>
-          pathAndLocation.path.segments.toVector match {
-            case Vector(Segment("playerdata"), Segment("shareinv"), _) =>
-              Some((new JdbcSharedInventoryItemStackPersistence(), pathAndLocations))
-            case Vector(Segment("playerdata"), Segment("inventory"), _) =>
-              Some((new JdbcFourDimensionalPocketItemStackPersistence(), pathAndLocations))
-            case Vector(Segment("gachadata"), _) =>
-              Some((new JdbcGachaDataItemStackPersistence, pathAndLocations))
-            case _ => None
+        pathAndLocations
+          .groupBy(_.path.segments.head)
+          .flatMap { case (segment, pathAndLocations) =>
+            segment match {
+              case Segment("playerdata") =>
+                pathAndLocations
+                  .groupBy(_.path.segments.toVector(1))
+                  .map { case (segment, pathAndLocations) =>
+                    segment match {
+                      case Segment("shareinv") =>
+                        Some((new JdbcSharedInventoryItemStackPersistence(), pathAndLocations))
+                      case Segment("inventory") =>
+                        Some((new JdbcFourDimensionalPocketItemStackPersistence(), pathAndLocations))
+                      case _ => None
+                    }
+                  }
+                  .toVector
+              case Segment("gachadata") =>
+                Vector(Some((new JdbcGachaDataItemStackPersistence, pathAndLocations)))
+              case _ => Vector(None)
+            }
           }
-        }
+          .toVector
+          .flatten
       }
       worldName <- Sync[F].pure(WorldName("formigration"))
       // NOTE: プラグインによって作成されたワールドは明示的に読み込む必要がある
       _ <- worldLifecycleManager.createWorld(worldName)
-      _ <- persistenceWithPathAndLocations.traverse { case (persistence, pathAndLocations) =>
+      _ <- Sync[F].delay(println(persistenceWithPathAndLocations.size))
+      _ <- persistenceWithPathAndLocations.parTraverse { case (persistence, pathAndLocations) =>
         for {
           deserializedItemStacksWithPaths <- pathAndLocations.traverse { pathAndLocation =>
             getChestContents.get(pathAndLocation.location).map { chestContents =>
@@ -81,6 +96,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
         } yield ()
       }
       _ <- worldLifecycleManager.deleteWorld(worldName)
+      _ <- Sync[F].delay(println("Done!"))
     } yield {}
   }
 
