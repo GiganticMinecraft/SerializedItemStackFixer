@@ -20,7 +20,7 @@ class BukkitWorldLifecycleManager[F[_]: Sync: OnMinecraftServerThread] extends W
     }).void
   }
 
-  override def deleteWorld(worldName: WorldName): F[Unit] = Sync[F].delay {
+  override def deleteWorld(worldName: WorldName): F[Unit] = OnMinecraftServerThread[F].runAction(SyncIO {
     Bukkit.unloadWorld(worldName.name, false)
-  }
+  }).void
 }
