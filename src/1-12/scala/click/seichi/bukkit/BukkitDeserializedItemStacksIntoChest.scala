@@ -1,14 +1,12 @@
 package click.seichi.bukkit
 
+import cats.effect.SyncIO
 import click.seichi.application.DeserializedItemStacksIntoChest
 import click.seichi.domain.{DeserializedItemStacks, LargeChestPuttedLocation}
 import click.seichi.typeclasses.OnMinecraftServerThread
-import org.bukkit.inventory.ItemStack
-import org.bukkit.Bukkit
-import org.bukkit.Location
+import org.bukkit.{Bukkit, Location}
 import org.bukkit.block.Chest
-import org.bukkit.block.DoubleChest;
-import cats.effect.SyncIO
+import org.bukkit.inventory.ItemStack
 
 class BukkitDeserializedItemStacksIntoChest[F[_]: OnMinecraftServerThread] extends DeserializedItemStacksIntoChest[F, ItemStack] {
   import cats.implicits._
@@ -30,7 +28,9 @@ class BukkitDeserializedItemStacksIntoChest[F[_]: OnMinecraftServerThread] exten
 
       assert(blockState.isInstanceOf[Chest])
 
-      val chestInventory = blockState.asInstanceOf[Chest].getBlockInventory.getHolder.asInstanceOf[DoubleChest].getInventory
+      val chestInventory = blockState.asInstanceOf[Chest].getInventory
+
+      assert(chestInventory.getSize == 9 * 6)
 
       deserializedItemStacks.itemStacks.zipWithIndex.map { case (itemStack, index) =>
         chestInventory.setItem(index, itemStack)
