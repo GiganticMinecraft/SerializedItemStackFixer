@@ -67,6 +67,9 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
           }
         }
       }
+      worldName <- Sync[F].pure(WorldName("formigration"))
+      // NOTE: プラグインによって作成されたワールドは明示的に読み込む必要がある
+      _ <- worldLifecycleManager.createWorld(worldName)
       _ <- persistenceWithPathAndLocations.traverse { case (persistence, pathAndLocations) =>
         for {
           deserializedItemStacksWithPaths <- pathAndLocations.traverse { pathAndLocation =>
@@ -77,7 +80,6 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
           _ <- persistence.writeSerializedItemStacks(deserializedItemStacksWithPaths)
         } yield ()
       }
-      worldName <- Sync[F].pure(WorldName("formigration"))
       _ <- worldLifecycleManager.deleteWorld(worldName)
     } yield {}
   }

@@ -44,8 +44,6 @@ object ContextCoercion extends ContextCoercionOps {
     import cats.effect.implicits._
 
     fromFunctionK(λ[F ~> G] { fa =>
-
-      
       Sync[G].delay {
         fa.runSync[SyncIO].unsafeRunSync()
       }
