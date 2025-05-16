@@ -23,7 +23,10 @@ class JdbcFourDimensionalPocketItemStackPersistence[F[_]: Sync, ItemStack](
           val path = Path(
             NonEmptyVector(
               Segment("playerdata"),
-              Vector(Segment(id))
+              Vector(
+                Segment("inventory"),
+                Segment(id)
+              )
             )
           )
 
