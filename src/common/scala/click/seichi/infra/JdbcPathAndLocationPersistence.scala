@@ -14,7 +14,7 @@ class JdbcPathAndLocationPersistence[F[_]: Sync] extends PathAndLocationPersiste
 
   override def createMigrationTargetPathWithLocationTable(): F[Unit] = Sync[F].delay {
     DB.localTx { implicit session =>
-      sql"""CREATE TABLE IF NOT EXISTS migration_targets(
+      sql"""CREATE TABLE IF NOT EXISTS serialized_itemstack_fixer.migration_targets(
            | path VARCHAR(255) NOT NULL PRIMARY KEY,
            | world_name VARCHAR(255) NOT NULL,
            | left_side_x INT NOT NULL,
