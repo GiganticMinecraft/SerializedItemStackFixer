@@ -15,6 +15,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
 
   def itemStackIntoWorld(
     implicit deserializedItemStacksIntoChest: DeserializedItemStacksIntoChest[F, ItemStack],
+    serializedAndDeserializeForGacha: SerializeAndDeserialize[Nothing, ItemStack],
     putChest: PutChest[F],
     serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]],
     worldLifecycleManager: WorldLifecycleManager[F]
@@ -28,7 +29,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
       deserializedItemStacksWithPath <- Vector(
         new JdbcFourDimensionalPocketItemStackPersistence[F, ItemStack],
         new JdbcSharedInventoryItemStackPersistence[F, ItemStack],
-        new JdbcGachaDataItemStackPersistence[F, ItemStack],
+        new JdbcGachaDataItemStackPersistence[F, ItemStack](serializedAndDeserializeForGacha),
       ).flatTraverse(_.readSerializedItemStacks)
       worldName <- Sync[F].pure(WorldName("formigration"))
       pathAndLocations <- Sync[F].pure(
@@ -47,6 +48,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
 
   def loadItemStackFromWorld(
     implicit serializeAndDeserialize: SerializeAndDeserialize[Nothing, Vector[ItemStack]],
+    serializedAndDeserializeForGacha: SerializeAndDeserialize[Nothing, ItemStack],
     worldLifecycleManager: WorldLifecycleManager[F],
     getChestContents: GetChestContents[F, ItemStack]
   ): F[Unit] = {
@@ -74,7 +76,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
                   }
                   .toVector
               case Segment("gachadata") =>
-                Vector(Some((new JdbcGachaDataItemStackPersistence, pathAndLocations)))
+                Vector(Some((new JdbcGachaDataItemStackPersistence(serializedAndDeserializeForGacha), pathAndLocations)))
               case _ => Vector(None)
             }
           }
@@ -87,7 +89,7 @@ class ItemStackFixerAPI[F[_]: Sync: NonServerThreadContextShift: Parallel, ItemS
       _ <- Sync[F].delay(println(persistenceWithPathAndLocations.size))
       _ <- persistenceWithPathAndLocations.parTraverse { case (persistence, pathAndLocations) =>
         for {
-          deserializedItemStacksWithPaths <- pathAndLocations.traverse { pathAndLocation =>
+          deserializedItemStacksWithPaths <- pathAndLocations.parTraverse { pathAndLocation =>
             getChestContents.get(pathAndLocation.location).map { chestContents =>
               DeserializedItemStacksWithPath(chestContents, pathAndLocation.path)
             }

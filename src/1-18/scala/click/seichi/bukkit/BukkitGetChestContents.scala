@@ -12,19 +12,38 @@ class BukkitGetChestContents[F[_]: OnMinecraftServerThread] extends GetChestCont
   override def get(location: LargeChestPuttedLocation): F[DeserializedItemStacks[ItemStack]] =
     OnMinecraftServerThread[F].runAction(SyncIO {
       val world = Bukkit.getServer.getWorld(location.worldName.name)
-      val chestLocation = new Location(
+      val leftSideChestLocation = new Location(
+        world,
+        location.leftSideCoordinate.x,
+        location.leftSideCoordinate.y,
+        location.leftSideCoordinate.z,
+      )
+      val rightSideChestLocation = new Location(
         world,
         location.rightSideCoordinate.x,
         location.rightSideCoordinate.y,
         location.rightSideCoordinate.z,
       )
 
-      val blockState = chestLocation.getBlock.getState
+      world.loadChunk(location.rightSideCoordinate.x, location.rightSideCoordinate.z)
+      world.loadChunk(location.leftSideCoordinate.x, location.leftSideCoordinate.z)
 
-      assert(blockState.isInstanceOf[Chest])
+      val leftSideBlockState = leftSideChestLocation.getBlock.getState
+      val rightSideBlockState = rightSideChestLocation.getBlock.getState
 
-      val chestInventory = blockState.asInstanceOf[Chest].getInventory
+      assert(leftSideBlockState.isInstanceOf[Chest])
+      assert(rightSideBlockState.isInstanceOf[Chest])
 
-      DeserializedItemStacks(chestInventory.getContents.toList.toVector)
+      val leftSideChest = leftSideBlockState.asInstanceOf[Chest]
+      val rightSideChest = rightSideBlockState.asInstanceOf[Chest]
+      leftSideChest.update(true, false)
+      rightSideChest.update(true, false)
+
+      val leftSideChestInventoryContents = leftSideChest.getInventory.getContents.toVector
+      val rightSideChestInventoryContents = rightSideChest.getInventory.getContents.toVector
+
+      val inventoryContents = leftSideChestInventoryContents ++ rightSideChestInventoryContents
+
+      DeserializedItemStacks(inventoryContents)
     })
 }
